@@ -15,8 +15,8 @@ class App {
         scene.background = new THREE.Color(0x888888);
 
         const start = Date.now();
-        // let geometry = new THREE.BoxGeometry(10, 10, 10);
-        const geometry = new THREE.TorusKnotGeometry(10, 2, 1000, 1000, 3, 5);
+        // const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const geometry = new THREE.TorusKnotGeometry(10, 2, 100, 100, 3, 5).toNonIndexed();
         this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green' }));
         scene.add(this.mesh);
         console.log('created geometry', Date.now() - start, 'with vertices', geometry.attributes.position.count);
@@ -44,9 +44,12 @@ class App {
         console.log('created octree', Date.now() - start);
 
         for (let i = 0; i < geometry.attributes.position.count; ++i) {
-            sphere.center.fromBufferAttribute(geometry.attributes.position, i);
-            const found = octree.search(sphere);
-            verticesToIndices.push(Math.min(...found));
+            if (verticesToIndices[i] === undefined) {
+                sphere.center.fromBufferAttribute(geometry.attributes.position, i);
+                const found = octree.search(sphere);
+                const newIndex = Math.min(...found);
+                found.forEach(ind => verticesToIndices[ind] = newIndex);
+            }
         }
 
         console.log('searched octree', Date.now() - start);
@@ -78,7 +81,7 @@ class App {
 
     compareIndices(indices1, indices2) {
         const num = Math.max(indices1.length, indices2.length);
-        const wrongs = Array.from({length:num}).filter((_,i )=> indices1[i] !== indices2[i]);
+        const wrongs = Array.from({ length: num }).filter((_, i) => indices1[i] !== indices2[i]);
         if (wrongs.length) {
             console.log('found wrong indexing', wrongs);
         } else {
