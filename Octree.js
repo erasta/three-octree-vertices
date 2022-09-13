@@ -12,7 +12,7 @@ export class Octree {
             trees.pop();
             if (curr.indices.length > maxVerticesPerNode) {
                 curr.split();
-                for (const t of trees) {
+                for (const t of curr.subtrees) {
                     trees.push(t);
                 }
             }
@@ -34,7 +34,7 @@ export class Octree {
                         }
                     }
                 } else {
-                    for (const t of trees) {
+                    for (const t of curr.subtrees) {
                         trees.push(t);
                     }
                 }
@@ -58,7 +58,7 @@ class SubTree {
     split() {
         const boxes = SubTree.boxSplit(this.box);
         for (const b of boxes) {
-            this.subtrees.push(new SubTree(curr, this.vertices, this.indices));
+            this.subtrees.push(new SubTree(b, this.vertices, this.indices));
         }
         this.indices = [];
     }
@@ -72,6 +72,7 @@ class SubTree {
                     const curr = new THREE.Box3();
                     curr.min.set(x, y, z).multiply(halfsize).add(box.min);
                     curr.max.copy(curr.min).add(halfsize);
+                    boxes.push(curr);
                 }
             }
         }
