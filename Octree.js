@@ -4,12 +4,12 @@ export class Octree {
     static _v = new THREE.Vector3();
 
     constructor(geometry, maxVerticesPerNode = 8) {
-        const vertices = geometry.attributes.position;
+        const vertices = geometry.attributes.position.array;
         this.vertices = vertices;
-        const num = vertices.count;
-        this.bounds = new THREE.Box3().setFromBufferAttribute(vertices);
+        const num = vertices.length / 3;
+        this.bounds = new THREE.Box3().setFromArray(vertices);
         this.subtree = { box: this.bounds, subtrees: [], indices: [] };
-        if (vertices.count <= maxVerticesPerNode) {
+        if (num <= maxVerticesPerNode) {
             this.subtree.indices = Array(num).fill().map((_, i) => i);
             return;
         }
@@ -18,7 +18,7 @@ export class Octree {
         for (const b of boxes) {
             const t = { box: b, subtrees: [], indices: [] };
             for (let i = 0; i < num; ++i) {
-                if (b.containsPoint(Octree._v.fromBufferAttribute(vertices, i))) {
+                if (b.containsPoint(Octree._v.fromArray(vertices, i * 3))) {
                     t.indices.push(i);
                 }
             }
@@ -34,7 +34,7 @@ export class Octree {
                 for (const b of boxes) {
                     const t = { box: b, subtrees: [], indices: [] };
                     for (const i of curr.indices) {
-                        if (b.containsPoint(Octree._v.fromBufferAttribute(vertices, i))) {
+                        if (b.containsPoint(Octree._v.fromArray(vertices, i * 3))) {
                             t.indices.push(i);
                         }
                     }
@@ -60,7 +60,7 @@ export class Octree {
                     }
                 } else {
                     for (const i of curr.indices) {
-                        if (sphere.containsPoint(Octree._v.fromBufferAttribute(this.vertices, i))) {
+                        if (sphere.containsPoint(Octree._v.fromArray(this.vertices, i * 3))) {
                             ret.push(i);
                         }
                     }
@@ -73,9 +73,9 @@ export class Octree {
     mergeVertices(threshold = 1e-4) {
         const sphere = new THREE.Sphere(undefined, threshold);
         const verticesToIndices = []
-        for (let i = 0, il = this.vertices.count; i < il; ++i) {
+        for (let i = 0, il = this.vertices.length / 3; i < il; ++i) {
             if (verticesToIndices[i] === undefined) {
-                sphere.center.fromBufferAttribute(this.vertices, i);
+                sphere.center.fromArray(this.vertices, i * 3);
                 const found = this.search(sphere);
                 const newIndex = Math.min(...found);
                 found.forEach(ind => verticesToIndices[ind] = newIndex);
