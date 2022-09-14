@@ -10,54 +10,67 @@ export class Octree {
         this.vertices = vertices;
         const num = vertices.length / 3;
         this.bounds = new THREE.Box3().setFromArray(vertices);
-        this.subtree = { box: this.bounds, subtrees: [], indices: [] };
+        this.subTrees = [{ box: this.bounds, subTrees: [], indices: [] }];
         if (num <= maxVerticesPerNode) {
-            this.subtree.indices = Array(num).fill().map((_, i) => i);
+            this.subTrees[0].indices = Array(num).fill().map((_, i) => i);
             return;
         }
 
         const boxes = Octree.boxSplit(this.bounds);
         for (const b of boxes) {
-            const t = { box: b, subtrees: [], indices: [] };
+            const t = { box: b, subTrees: [], indices: [] };
             for (let i = 0; i < num; ++i) {
                 if (b.containsPoint(Octree._v.fromArray(vertices, i * 3))) {
                     t.indices.push(i);
                 }
             }
-            this.subtree.subtrees.push(t);
+            this.subTrees[0].subTrees.push(t);
         }
 
-        const trees = this.subtree.subtrees.slice();
+        const trees = this.subTrees[0].subTrees.slice();
         while (trees.length) {
             const curr = trees.at(-1);
             trees.pop();
             if (curr.indices.length > maxVerticesPerNode) {
                 const boxes = Octree.boxSplit(curr.box);
                 for (const b of boxes) {
-                    const t = { box: b, subtrees: [], indices: [] };
+                    const t = { box: b, subTrees: [], indices: [] };
                     for (const i of curr.indices) {
                         if (b.containsPoint(Octree._v.fromArray(vertices, i * 3))) {
                             t.indices.push(i);
                         }
                     }
 
-                    curr.subtrees.push(t);
+                    curr.subTrees.push(t);
                     trees.push(t);
                 }
             }
         }
     }
 
+    // addVertex(v) {
+    //     let curr = this.subTrees;
+    //     const found = false;
+    //     while(curr.subTrees.length) {
+    //         for (const t of curr.subTrees) {
+    //             if (t.box.containsPoint(v)) {
+    //                 curr = t;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
+
     search(position, radius) {
         const sphere = (position instanceof THREE.Sphere) ? position : new THREE.Sphere(position, radius);
         const ret = [];
-        const trees = [this.subtree];
+        const trees = this.subTrees.slice();
         while (trees.length) {
             const curr = trees.at(-1);
             trees.pop();
             if (curr.box.intersectsSphere(sphere)) {
-                if (curr.subtrees.length) {
-                    for (const t of curr.subtrees) {
+                if (curr.subTrees.length) {
+                    for (const t of curr.subTrees) {
                         trees.push(t);
                     }
                 } else {

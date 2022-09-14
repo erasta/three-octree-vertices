@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addon/environments/RoomEnvironment.js';
+import { OctreeHelper } from 'three/addon/helpers/OctreeHelper.js';
+import { OrbitControls } from 'three/addon/controls/OrbitControls.js';
 import { Octree } from '../Octree.js';
+
 
 class App {
     go() {
@@ -13,15 +16,20 @@ class App {
         document.body.appendChild(renderer.domElement);
         scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment()).texture;
         scene.background = new THREE.Color(0x888888);
+        const controls = new OrbitControls(camera, renderer.domElement);
 
         const start = Date.now();
         // const geometry = new THREE.BoxGeometry(10, 10, 10);
-        const geometry = new THREE.TorusKnotGeometry(10, 2, 200, 200, 3, 5).toNonIndexed();
-        this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green' }));
+        const geometry = new THREE.TorusKnotGeometry(10, 2, 100, 100, 3, 5).toNonIndexed();
+        this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green', side: THREE.DoubleSide, transparent: true, opacity: 0.3 }));
         scene.add(this.mesh);
         console.log('created geometry', Date.now() - start, 'with vertices', geometry.attributes.position.count);
 
         this.compareIndices(this.weldByOctree(geometry), this.weldByHashtable(geometry));
+
+        const octree = new Octree(geometry);
+        const octreeHelper = new OctreeHelper(octree);
+        scene.add(octreeHelper);
 
         function animate() {
             requestAnimationFrame(animate);
