@@ -7,6 +7,7 @@ export class Octree {
         if (vertices instanceof THREE.BufferGeometry) {
             vertices = vertices.attributes.position.array;
         }
+        this.maxVerticesPerNode = maxVerticesPerNode;
         this.vertices = vertices;
         const num = vertices.length / 3;
         this.bounds = new THREE.Box3().setFromArray(vertices);
@@ -32,18 +33,8 @@ export class Octree {
             const curr = trees.at(-1);
             trees.pop();
             if (curr.indices.length > maxVerticesPerNode) {
-                const boxes = Octree.boxSplit(curr.box);
-                for (const b of boxes) {
-                    const t = { box: b, subTrees: [], indices: [] };
-                    for (const i of curr.indices) {
-                        if (b.containsPoint(Octree._v.fromArray(vertices, i * 3))) {
-                            t.indices.push(i);
-                        }
-                    }
-
-                    curr.subTrees.push(t);
-                    trees.push(t);
-                }
+                this.splitCell(curr);
+                trees.push(...curr.subTrees);
             }
         }
     }
@@ -58,6 +49,9 @@ export class Octree {
     //                 break;
     //             }
     //         }
+    //     }
+    //     if (curr.indices.length > this.maxVerticesPerNode) {
+    //         split(curr);
     //     }
     // }
 
@@ -97,6 +91,21 @@ export class Octree {
             }
         }
         return verticesToIndices;
+    }
+
+    splitCell(cell) {
+        const boxes = Octree.boxSplit(cell.box);
+        for (const b of boxes) {
+            const t = { box: b, subTrees: [], indices: [] };
+            for (const i of cell.indices) {
+                if (b.containsPoint(Octree._v.fromArray(this.vertices, i * 3))) {
+                    t.indices.push(i);
+                }
+            }
+
+            cell.subTrees.push(t);
+        }
+        cell.indices = [];
     }
 
     static boxSplit(box) {
