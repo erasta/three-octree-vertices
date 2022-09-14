@@ -16,7 +16,7 @@ class App {
 
         const start = Date.now();
         // const geometry = new THREE.BoxGeometry(10, 10, 10);
-        const geometry = new THREE.TorusKnotGeometry(10, 2, 100, 100, 3, 5).toNonIndexed();
+        const geometry = new THREE.TorusKnotGeometry(10, 2, 200, 200, 3, 5).toNonIndexed();
         this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green' }));
         scene.add(this.mesh);
         console.log('created geometry', Date.now() - start, 'with vertices', geometry.attributes.position.count);
