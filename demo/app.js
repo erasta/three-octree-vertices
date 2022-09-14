@@ -44,11 +44,12 @@ class App {
                 newVertices.push(v);
             }
             octreeHelper.update();
+            points.geometry.dispose();
             points.geometry.setFromPoints(newVertices);
         }, 500);
 
-        this.stopCreatingPoints = () => clearInterval(interval);
         const gui = new GUI();
+        this.stopCreatingPoints = () => { clearInterval(interval); gui.controllers[0].disable(); };
         gui.add(this, 'stopCreatingPoints');
 
         function animate() {
