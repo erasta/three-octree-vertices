@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addon/environments/RoomEnvironment.js';
-import { OctreeHelper } from 'three/addon/helpers/OctreeHelper.js';
+// import { OctreeHelper } from 'three/addon/helpers/OctreeHelper.js';
+import { OctreeHelper } from '../libs/OctreeHelper.js'; // added an update() method
 import { OrbitControls } from 'three/addon/controls/OrbitControls.js';
 import { Octree } from '../Octree.js';
-
+import { GUI } from 'three/addon/libs/lil-gui.module.min.js';
 
 class App {
     go() {
@@ -21,15 +22,34 @@ class App {
         const start = Date.now();
         // const geometry = new THREE.BoxGeometry(10, 10, 10);
         const geometry = new THREE.TorusKnotGeometry(10, 2, 100, 100, 3, 5).toNonIndexed();
-        this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green', side: THREE.DoubleSide, transparent: true, opacity: 0.3 }));
+        this.mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 'green', side: THREE.DoubleSide, transparent: true, opacity: 0.5 }));
         scene.add(this.mesh);
         console.log('created geometry', Date.now() - start, 'with vertices', geometry.attributes.position.count);
 
         this.compareIndices(this.weldByOctree(geometry), this.weldByHashtable(geometry));
 
-        const octree = new Octree(geometry);
+        let octree = new Octree(geometry);
         const octreeHelper = new OctreeHelper(octree);
         scene.add(octreeHelper);
+
+        geometry.computeBoundingBox();
+        const size = geometry.boundingBox.getSize(new THREE.Vector3());
+        const points = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ color: 'red', sizeAttenuation: true, size: 0.2 }));
+        scene.add(points);
+        const newVertices = [];
+        const interval = setInterval(() => {
+            for (let i = 0; i < 100; ++i) {
+                const v = new THREE.Vector3().random().multiply(size).add(geometry.boundingBox.min);
+                octree.addVertex(v);
+                newVertices.push(v);
+            }
+            octreeHelper.update();
+            points.geometry.setFromPoints(newVertices);
+        }, 500);
+
+        this.stopCreatingPoints = () => clearInterval(interval);
+        const gui = new GUI();
+        gui.add(this, 'stopCreatingPoints');
 
         function animate() {
             requestAnimationFrame(animate);
@@ -76,12 +96,7 @@ class App {
 
     compareIndices(indices1, indices2) {
         const num = Math.max(indices1.length, indices2.length);
-        const wrongs = Array.from({ length: num }).filter((_, i) => indices1[i] !== indices2[i]);
-        if (wrongs.length) {
-            console.log('found wrong indexing', wrongs);
-        } else {
-            console.log('all good');
-        }
+        console.log('wrong indices:', Array(num).fill().map((_, i) => i).filter(i => indices1[i] !== indices2[i]));
     }
 }
 

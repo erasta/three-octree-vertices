@@ -39,21 +39,27 @@ export class Octree {
         }
     }
 
-    // addVertex(v) {
-    //     let curr = this.subTrees;
-    //     const found = false;
-    //     while(curr.subTrees.length) {
-    //         for (const t of curr.subTrees) {
-    //             if (t.box.containsPoint(v)) {
-    //                 curr = t;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     if (curr.indices.length > this.maxVerticesPerNode) {
-    //         split(curr);
-    //     }
-    // }
+    addVertex(v) {
+        const newIndex = this.vertices.length / 3;
+        if (!this.vertices.push){
+            this.vertices = Array.from(this.vertices);
+        }
+        this.vertices.push(v.x, v.y, v.z);
+        let curr = this.subTrees[0];
+        const found = false;
+        while (curr.subTrees.length) {
+            for (const t of curr.subTrees) {
+                if (t.box.containsPoint(v)) {
+                    curr = t;
+                    break;
+                }
+            }
+        }
+        curr.indices.push(newIndex);
+        if (curr.indices.length > this.maxVerticesPerNode) {
+            this.splitCell(curr);
+        }
+    }
 
     search(position, radius) {
         const sphere = (position instanceof THREE.Sphere) ? position : new THREE.Sphere(position, radius);
