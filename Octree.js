@@ -3,8 +3,10 @@ import * as THREE from 'three';
 export class Octree {
     static _v = new THREE.Vector3();
 
-    constructor(geometry, maxVerticesPerNode = 8) {
-        const vertices = geometry.attributes.position.array;
+    constructor(vertices, maxVerticesPerNode = 8) {
+        if (vertices instanceof THREE.BufferGeometry) {
+            vertices = vertices.attributes.position.array;
+        }
         this.vertices = vertices;
         const num = vertices.length / 3;
         this.bounds = new THREE.Box3().setFromArray(vertices);
