@@ -70,6 +70,20 @@ export class Octree {
         return ret;
     }
 
+    mergeVertices(threshold = 1e-4) {
+        const sphere = new THREE.Sphere(undefined, threshold);
+        const verticesToIndices = []
+        for (let i = 0, il = this.vertices.count; i < il; ++i) {
+            if (verticesToIndices[i] === undefined) {
+                sphere.center.fromBufferAttribute(this.vertices, i);
+                const found = this.search(sphere);
+                const newIndex = Math.min(...found);
+                found.forEach(ind => verticesToIndices[ind] = newIndex);
+            }
+        }
+        return verticesToIndices;
+    }
+
     static boxSplit(box) {
         const boxes = [];
         const halfsize = box.getSize(new THREE.Vector3()).multiplyScalar(0.5);

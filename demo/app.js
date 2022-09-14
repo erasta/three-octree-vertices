@@ -34,24 +34,11 @@ class App {
     }
 
     weldByOctree(geometry, threshold = 1e-4) {
-        const sphere = new THREE.Sphere(undefined, threshold);
-        const verticesToIndices = []
-
         console.log('Starting octree');
         const start = Date.now();
-
         const octree = new Octree(geometry);
         console.log('created octree', Date.now() - start);
-
-        for (let i = 0; i < geometry.attributes.position.count; ++i) {
-            if (verticesToIndices[i] === undefined) {
-                sphere.center.fromBufferAttribute(geometry.attributes.position, i);
-                const found = octree.search(sphere);
-                const newIndex = Math.min(...found);
-                found.forEach(ind => verticesToIndices[ind] = newIndex);
-            }
-        }
-
+        const verticesToIndices = octree.mergeVertices(threshold);
         console.log('searched octree', Date.now() - start);
         return verticesToIndices;
     }
