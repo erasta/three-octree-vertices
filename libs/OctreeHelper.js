@@ -9,8 +9,7 @@ class OctreeHelper extends LineSegments {
 
 	constructor( octree, color = 0xffff00 ) {
 
-		const geometry = new BufferGeometry();
-		super( geometry, new LineBasicMaterial( { color: color, toneMapped: false } ) );
+		super( new BufferGeometry(), new LineBasicMaterial( { color: color, toneMapped: false } ) );
 
 		this.octree = octree;
 		this.color = color;
@@ -55,21 +54,19 @@ class OctreeHelper extends LineSegments {
 
 		traverse( this.octree.subTrees );
 
-		if ( this.geometry.attributes.position && this.geometry.attributes.position.count === vertices.length ) {
+		this.geometry.dispose();
 
-			this.geometry.attributes.position.set(vertices);
-
-		}
-		else
-		{
-
-			this.geometry.dispose();
-			this.geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-
-		}
+		this.geometry = new BufferGeometry();
+		this.geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
 
 	}
 
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+
+	}
 }
 
 export { OctreeHelper };

@@ -9,6 +9,26 @@
   "keywords": [
     "threejs",
     "3d",
-    "javascript"
-  ]
+    "javascript",
+    "octree",
+    "vertices",
+    "space-partitioning"
+  ],
+  "name": "three-octree-vertices",
+  "description": "Octree of vertices for three.js",
+  "version": "1.0.0",
+  "main": "Octree.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erasta/three-octree-vertices.git"
+  },
+  "author": "erasta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/erasta/three-octree-vertices/issues"
+  },
+  "homepage": "https://github.com/erasta/three-octree-vertices#readme"
 }
